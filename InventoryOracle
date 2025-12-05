@@ -1,0 +1,76 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class InventoryOracle {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String url = "jdbc:oracle:thin:@localhost:1521:xe"; // Replace 'xe' with your SID if different
+        String user = "system";   
+        String password = "anu";  
+
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            Connection con = DriverManager.getConnection(url, user, password);
+            Statement stmt = con.createStatement();
+            int choice;
+
+            do {
+                System.out.println("\n--- Inventory Management ---");
+                System.out.println("1. Add Product");
+                System.out.println("2. View Products");
+                System.out.println("3. Update Quantity");
+                System.out.println("4. Delete Product");
+                System.out.println("5. Exit");
+                System.out.print("Enter choice: ");
+                choice = sc.nextInt();
+                sc.nextLine();
+
+                if (choice == 1) {
+                    System.out.print("Enter Product ID: ");
+                    int id = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter Product Name: ");
+                    String name = sc.nextLine();
+                    System.out.print("Enter Quantity: ");
+                    int qty = sc.nextInt();
+                    System.out.print("Enter Price: ");
+                    double price = sc.nextDouble();
+
+                    String query = "INSERT INTO products (id, name, quantity, price) VALUES (" + id + ", '" + name + "', " + qty + ", " + price + ")";
+                    stmt.executeUpdate(query);
+                    System.out.println("Product added successfully!");
+
+                } else if (choice == 2) {
+                    ResultSet rs = stmt.executeQuery("SELECT * FROM products");
+                    System.out.println("\nID\tName\tQuantity\tPrice");
+                    while (rs.next()) {
+                        System.out.println(rs.getInt("id") + "\t" + rs.getString("name") + "\t" + rs.getInt("quantity") + "\t" + rs.getDouble("price"));
+                    }
+
+                } else if (choice == 3) {
+                    System.out.print("Enter Product ID: ");
+                    int id = sc.nextInt();
+                    System.out.print("Enter new Quantity: ");
+                    int qty = sc.nextInt();
+                    String query = "UPDATE products SET quantity=" + qty + " WHERE id=" + id;
+                    int rows = stmt.executeUpdate(query);
+                    System.out.println(rows > 0 ? "Quantity updated!" : "Product ID not found.");
+
+                } else if (choice == 4) {
+                    System.out.print("Enter Product ID: ");
+                    int id = sc.nextInt();
+                    String query = "DELETE FROM products WHERE id=" + id;
+                    int rows = stmt.executeUpdate(query);
+                    System.out.println(rows > 0 ? "Product deleted!" : "Product ID not found.");
+                }
+
+            } while (choice != 5);
+
+            con.close();
+            System.out.println("Exiting...");
+
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
